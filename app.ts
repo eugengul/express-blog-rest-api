@@ -3,10 +3,12 @@ import express from "express";
 import authRouter from "./routes/authRouter.js";
 import config from "./config.js";
 import usersRouter from "./routes/usersRouter.js";
+import { validateAccessToken } from "./utils/auth.js";
 
 const app = express();
 
 app.use(express.json());
+app.use(validateAccessToken);
 
 // ---------- ROUTES ----------
 app.use("/auth/", authRouter);

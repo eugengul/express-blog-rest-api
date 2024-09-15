@@ -12,30 +12,45 @@ function generateAccessToken(user: User) {
   });
 }
 
-// Middleware validates token and adds user to request
+// Middleware validates token and adds user to request or set user to null
 const validateAccessToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   const { authorization } = req.headers;
+  // If user is not authenticated, set user to null
+  req.user = null;
   // Authorization header has format "Bearer <token>"
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-    res.status(401).send({ message: "Unauthorized" });
-  } else {
+  if (authorization && authorization.startsWith("Bearer ")) {
     const token = authorization.split(" ")[1];
     try {
+      // Verify token and check if user with this id exists
       const { id } = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
       const user = await prisma.user.findUnique({ where: { id: id } });
-      if (!user) {
-        res.status(401).send({ message: "Unauthorized" });
-        return;
+      // If user exists, add user to request
+      if (user) req.user = user;
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "TokenExpiredError") {
+        console.log("Token expired:", error);
+      } else {
+        console.error("Token verification failed:", error);
       }
-      req.user = user;
-      next();
-    } catch {
-      res.status(401).send({ message: "Unauthorized" });
     }
+  }
+  next();
+};
+
+// Middleware prevents unauthorized access
+const userRequired = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    res.status(401).send({ message: "Unauthorized" });
+  } else {
+    next();
   }
 };
 
@@ -46,4 +61,9 @@ function assertHasUser(req: Request): asserts req is Request & { user: User } {
   }
 }
 
-export { generateAccessToken, validateAccessToken, assertHasUser };
+export {
+  generateAccessToken,
+  validateAccessToken,
+  assertHasUser,
+  userRequired,
+};

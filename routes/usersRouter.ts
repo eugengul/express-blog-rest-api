@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { meGet } from "../controllers/usersController.js";
-import { validateAccessToken } from "../utils/auth.js";
+import { userRequired } from "../utils/auth.js";
 
 const usersRouter = Router();
 
-usersRouter.get("/me", validateAccessToken, meGet);
+usersRouter.get("/me", userRequired, meGet);
 
 export default usersRouter;
