@@ -3,6 +3,8 @@ import express from "express";
 import authRouter from "./routes/authRouter.js";
 import config from "./config.js";
 import usersRouter from "./routes/usersRouter.js";
+import postsRouter from "./routes/postsRouter.js";
+import commentsRouter from "./routes/commentsRouter.js";
 import { validateAccessToken } from "./utils/auth.js";
 
 const app = express();
@@ -13,6 +15,8 @@ app.use(validateAccessToken);
 // ---------- ROUTES ----------
 app.use("/auth/", authRouter);
 app.use("/users/", usersRouter);
+app.use("/posts/", postsRouter);
+app.use("/comments/", commentsRouter);
 
 // ---------- ERROR HANDLING ----------
 app.use(
